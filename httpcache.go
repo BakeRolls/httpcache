@@ -3,8 +3,13 @@ package httpcache
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+
+	"github.com/pkg/errors"
 )
 
 // Cache is a key value store.
@@ -46,6 +51,18 @@ func New(c Cache, options ...func(*Transport)) *Transport {
 // provided Request.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	key := req.Method + " " + req.URL.String()
+
+	if req.Method == http.MethodPost && req.Body != nil {
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not read request body")
+		}
+		req.Body.Close()
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		hash := sha256.Sum256(body)
+		key += " " + hex.EncodeToString(hash[:])
+	}
+
 	if dump, err := t.cache.Get(key); err == nil {
 		buf := bufio.NewReader(bytes.NewReader(dump))
 		return http.ReadResponse(buf, req)
