@@ -3,29 +3,41 @@ package diskcache
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"time"
 
 	"github.com/peterbourgon/diskv"
 )
 
+// DiskCache stores responses in files on disk.
 type DiskCache struct {
+	age   time.Duration
 	diskv *diskv.Diskv
 }
 
-func New(path string) *DiskCache {
-	return &DiskCache{
-		diskv.New(diskv.Options{
-			BasePath:     path,
-			CacheSizeMax: 100 * 1024 * 1024,
-		}),
-	}
+// New returns a new DiskCache. If age is 0, the cache won't get deleted.
+func New(path string, age time.Duration) *DiskCache {
+	dv := diskv.New(diskv.Options{
+		BasePath:     path,
+		CacheSizeMax: 100 * 1024 * 1024,
+	})
+	return &DiskCache{age, dv}
 }
 
+// Get a cached response dump.
 func (c *DiskCache) Get(key string) ([]byte, error) {
 	return c.diskv.Read(hash(key))
 }
 
+// Set a response dump.
 func (c *DiskCache) Set(key string, dump []byte) error {
-	return c.diskv.Write(hash(key), dump)
+	key = hash(key)
+	if c.age != 0 {
+		go func() {
+			time.Sleep(c.age)
+			c.diskv.Erase(key)
+		}()
+	}
+	return c.diskv.Write(key, dump)
 }
 
 func hash(key string) string {
