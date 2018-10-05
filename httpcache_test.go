@@ -10,7 +10,7 @@ import (
 )
 
 // Generate a new cached http.Client that saves responses with a status code
-// between 200 and 300 in memory,
+// between 200 and 300 in memory.
 func ExampleNew() {
 	cache := memcache.New()
 	client := httpcache.New(cache,
