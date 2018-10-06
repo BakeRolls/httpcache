@@ -12,6 +12,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Verifier determine if a given request-response-pair should get cached.
+type Verifier func(*http.Request, *http.Response) bool
+
 // Cache is a key value store.
 type Cache interface {
 	Get(key string) ([]byte, error)
@@ -21,20 +24,27 @@ type Cache interface {
 // Transport implements the http.RoundTripper interface.
 type Transport struct {
 	cache     Cache
-	verifiers []func(*http.Response) bool
+	verifiers []Verifier
 }
 
 // StatusInTwoHundreds returns true if the responses' status code is between
 // 200 and 300.
-func StatusInTwoHundreds(res *http.Response) bool {
+func StatusInTwoHundreds(req *http.Request, res *http.Response) bool {
 	return res.StatusCode >= 200 && res.StatusCode < 300
+}
+
+// RequestMethod returns true if a given request method is used.
+func RequestMethod(method string) Verifier {
+	return func(req *http.Request, res *http.Response) bool {
+		return req.Method == method
+	}
 }
 
 // Verify checks if a http.Response is cachable, i.e. the status code is OK or
 // the body contains relevant information.
-func Verify(fn func(*http.Response) bool) func(*Transport) {
+func Verify(v Verifier) func(*Transport) {
 	return func(t *Transport) {
-		t.verifiers = append(t.verifiers, fn)
+		t.verifiers = append(t.verifiers, v)
 	}
 }
 
@@ -73,7 +83,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 	for _, verify := range t.verifiers {
-		if !verify(res) {
+		if !verify(req, res) {
 			return res, nil
 		}
 	}

@@ -12,18 +12,25 @@ cache := memcache.New()
 httpClient := httpcache.New(cache).Client()
 ```
 
-Per default every response is cached, even ones with a status code outside the range [200-300[. You can specify if a response should get saved by providing a function using the `Verify` option.
+Per default every response is cached, even `POST` with a status code outside the range [200-300[. You can specify if a response should get saved by providing a function using the `Verify` option.
 
 ```go
 cache := memcache.New()
 client := httpcache.New(cache,
-	httpcache.Verify(func(res *http.Response) bool {
+	httpcache.Verify(func(req *http.Request, res *http.Response) bool {
 		return res.StatusCode >= 200 && res.StatusCode < 300
 	}),
 ).Client()
 ```
 
-If the mentioned range is verification enough, a function `httpcache.StatusInTwoHundreds` is provided.
+A common example, only cache `GET` requests that don't fail, could look like the following.
+
+```go
+client := httpcache.New(memcache.New(),
+	httpcache.Verify(httpcache.StatusInTwoHundreds),
+	httpcache.Verify(httpcache.RequestMethod(http.MethodGet)),
+).Client()
+```
 
 ## Cache
 
