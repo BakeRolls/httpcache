@@ -15,7 +15,7 @@ func ExampleNew() {
 	cache := memcache.New()
 	client := httpcache.New(cache,
 		// httpcache.Verify(httpcache.StatusInTwoHundreds)
-		httpcache.Verify(func(res *http.Response) bool {
+		httpcache.Verify(func(req *http.Request, res *http.Response) bool {
 			return res.StatusCode >= 200 && res.StatusCode < 300
 		}),
 	).Client()
