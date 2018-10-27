@@ -32,10 +32,7 @@ func (c *DiskCache) Get(key string) ([]byte, error) {
 func (c *DiskCache) Set(key string, dump []byte) error {
 	key = hash(key)
 	if c.age != 0 {
-		go func() {
-			time.Sleep(c.age)
-			c.diskv.Erase(key)
-		}()
+		time.AfterFunc(c.age, func() { c.diskv.Erase(key) })
 	}
 	return c.diskv.Write(key, dump)
 }
