@@ -25,6 +25,7 @@ type Cache interface {
 type Transport struct {
 	cache     Cache
 	verifiers []Verifier
+	transport http.RoundTripper
 }
 
 // StatusInTwoHundreds returns true if the responses' status code is between
@@ -48,9 +49,16 @@ func Verify(v Verifier) func(*Transport) {
 	}
 }
 
+// WithTransport replaces the http.DefaultTransport RoundTripper.
+func WithTransport(transport http.RoundTripper) func(*Transport) {
+	return func(t *Transport) {
+		t.transport = transport
+	}
+}
+
 // New returns a new cachable Transport.
 func New(c Cache, options ...func(*Transport)) *Transport {
-	t := &Transport{cache: c}
+	t := &Transport{cache: c, transport: http.DefaultTransport}
 	for _, option := range options {
 		option(t)
 	}
@@ -78,7 +86,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return http.ReadResponse(buf, req)
 	}
 
-	res, err := http.DefaultTransport.RoundTrip(req)
+	res, err := t.transport.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
