@@ -41,9 +41,10 @@ func RequestMethod(method string) Verifier {
 	}
 }
 
-// Verify checks if a http.Response is cachable, i.e. the status code is OK or
-// the body contains relevant information.
-func Verify(v Verifier) func(*Transport) {
+// WithVerifier adds a verifier that tests if a http.Response should be
+// cached, i.e. the status code is OK or the body contains relevant
+// information.
+func WithVerifier(v Verifier) func(*Transport) {
 	return func(t *Transport) {
 		t.verifiers = append(t.verifiers, v)
 	}
