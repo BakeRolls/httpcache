@@ -17,7 +17,7 @@ Per default every response is cached, even `POST` with a status code outside the
 ```go
 cache := memcache.New()
 client := httpcache.New(cache,
-	httpcache.Verify(func(req *http.Request, res *http.Response) bool {
+	httpcache.WithVerifier(func(req *http.Request, res *http.Response) bool {
 		return res.StatusCode >= 200 && res.StatusCode < 300
 	}),
 ).Client()
@@ -27,8 +27,8 @@ A common example, only cache `GET` requests that don't fail, could look like the
 
 ```go
 client := httpcache.New(memcache.New(),
-	httpcache.Verify(httpcache.StatusInTwoHundreds),
-	httpcache.Verify(httpcache.RequestMethod(http.MethodGet)),
+	httpcache.WithVerifier(httpcache.StatusInTwoHundreds),
+	httpcache.WithVerifier(httpcache.RequestMethod(http.MethodGet)),
 ).Client()
 ```
 
