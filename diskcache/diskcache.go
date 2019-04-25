@@ -8,6 +8,11 @@ import (
 	"github.com/peterbourgon/diskv"
 )
 
+const (
+	// NoExpiration stops the diskcache from removing items after a given time.
+	NoExpiration time.Duration = 0
+)
+
 // DiskCache stores responses in files on disk.
 type DiskCache struct {
 	age   time.Duration
