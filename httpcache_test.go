@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/BakeRolls/httpcache"
-	"github.com/BakeRolls/httpcache/memcache"
+	"github.com/bake/httpcache"
+	"github.com/bake/httpcache/memcache"
 )
 
 // Generate a new cached http.Client that saves responses with a status code

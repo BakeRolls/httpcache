@@ -1,7 +1,7 @@
 # httpcache
 
-[![GoDoc](https://godoc.org/github.com/BakeRolls/httpcache?status.svg)](https://godoc.org/github.com/BakeRolls/httpcache)
-[![Go Report Card](https://goreportcard.com/badge/github.com/BakeRolls/httpcache)](https://goreportcard.com/report/github.com/BakeRolls/httpcache)
+[![GoDoc](https://godoc.org/github.com/bake/httpcache?status.svg)](https://godoc.org/github.com/bake/httpcache)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bake/httpcache)](https://goreportcard.com/report/github.com/bake/httpcache)
 
 As simple as it gets HTTP cache. It is heavily inspired by [gregjones/httpcache](https://github.com/gregjones/httpcache), but it ignores the response headers. If you need a cache that respects these, please take a look at [gregjones/httpcache](https://github.com/gregjones/httpcache) and [lox/httpcache](https://github.com/lox/httpcache).
 
@@ -17,9 +17,9 @@ Per default every response is cached, even `POST` with a status code outside the
 ```go
 cache := memcache.New()
 client := httpcache.New(cache,
-	httpcache.WithVerifier(func(req *http.Request, res *http.Response) bool {
-		return res.StatusCode >= 200 && res.StatusCode < 300
-	}),
+  httpcache.WithVerifier(func(req *http.Request, res *http.Response) bool {
+    return res.StatusCode >= 200 && res.StatusCode < 300
+  }),
 ).Client()
 ```
 
@@ -27,11 +27,11 @@ A common example, only cache `GET` requests that don't fail, could look like the
 
 ```go
 client := httpcache.New(memcache.New(),
-	httpcache.WithVerifier(httpcache.StatusInTwoHundreds),
-	httpcache.WithVerifier(httpcache.RequestMethod(http.MethodGet)),
+  httpcache.WithVerifier(httpcache.StatusInTwoHundreds),
+  httpcache.WithVerifier(httpcache.RequestMethod(http.MethodGet)),
 ).Client()
 ```
 
 ## Cache
 
-Currently there are two cache methods: in memory and on disk using [diskv](https://github.com/peterbourgon/diskv). Caches have to implement the [`Cache` interface](https://godoc.org/github.com/BakeRolls/httpcache#Cache), which is basically a key-value-store with two functions `Get` and `Set`.
+Currently there are two cache methods: in memory and on disk using [diskv](https://github.com/peterbourgon/diskv). Caches have to implement the [`Cache` interface](https://godoc.org/github.com/bake/httpcache#Cache), which is basically a key-value-store with two functions `Get` and `Set`.
